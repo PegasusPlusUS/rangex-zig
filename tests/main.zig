@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn main() !void {
+pub fn tests_main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
 
@@ -16,7 +16,13 @@ pub fn main() !void {
     try bw.flush(); // don't forget to flush!
 }
 
+test "test_tests_main" {
+    try tests_main();
+}
+
 test "simple test" {
+    std.debug.print("Running tests in tests/main.zig \"simple test\"\n", .{});
+
     var list = std.ArrayList(i32).init(std.testing.allocator);
     defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
     try list.append(42);
