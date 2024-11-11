@@ -124,6 +124,42 @@ pub fn WhileRange(comptime T: type) type {
     };
 }
 
+pub fn IndexedWhileRange(comptime T: type) type {
+    return struct {
+        range: WhileRange(T),
+        index: usize,
+
+        const SignedT = switch (@typeInfo(T)) {
+            .Int => |int_info| if (int_info.signedness == .unsigned)
+                std.meta.Int(.signed, int_info.bits)
+            else
+                T,
+            else => T,
+        };
+
+        const Self = @This();
+
+        pub fn init(start: T, end: T, inclusive: bool, step: SignedT) !Self {
+            return Self{
+                .range = try WhileRange(T).init(start, end, inclusive, step),
+                .index = 0,
+            };
+        }
+
+        pub fn next(self: *Self) ?struct { index: usize, value: T } {
+            if (self.range.next()) |value| {
+                const result = .{
+                    .index = self.index,
+                    .value = value,
+                };
+                self.index += 1;
+                return result;
+            }
+            return null;
+        }
+    };
+}
+
 pub fn lib_main() !void {
     // Integer range (forward)
     var range1 = try WhileRange(i32).init(0, 10, false, 2);
@@ -322,4 +358,17 @@ test "std f32 start stop backward exclusive step is -0.2" {
         s_i += value;
     }
     try std.testing.expectApproxEqAbs(s_i, (1.0 + 0.0) * 6 / 2, 1e-6);
+}
+
+test "indexed while range" {
+    var index :usize = 0;
+    var range = try IndexedWhileRange(u8).init(10, 1, true, -1);
+    std.debug.print("Indexed backward u8 while range [10, 1]:\n", .{});
+    std.debug.print("(Index:Value)", .{});
+    while (range.next()) |element| {
+        try std.testing.expectEqual(index, element.index);
+        index += 1;
+        std.debug.print("({}:{})\n", .{element.index, element.value});
+    }
+    std.debug.print("\n", .{});
 }

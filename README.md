@@ -1,6 +1,7 @@
 # RangeX
 
-Zig for loop can't use customized range, only while loop flexible enough.
+Zig 'for' loop can't use customized range, only 'while' loop flexible enough.
+And 'for' loop can trace multiple ranges, so together with '0..' can be used as index, so dedicated indexed range only useful in 'while' loop.
 
 ```Zig
 pub fn lib_main() !void {
@@ -202,4 +203,18 @@ test "std f32 start stop backward exclusive step is -0.2" {
     }
     try std.testing.expectApproxEqAbs(s_i, (1.0 + 0.0) * 6 / 2, 1e-6);
 }
+
+test "indexed while range" {
+    var index :usize = 0;
+    var range = try IndexedWhileRange(u8).init(10, 1, true, -1);
+    std.debug.print("Indexed backward u8 while range [10, 1]:\n", .{});
+    std.debug.print("(Index:Value)", .{});
+    while (range.next()) |element| {
+        try std.testing.expectEqual(index, element.index);
+        index += 1;
+        std.debug.print("({}:{})\n", .{element.index, element.value});
+    }
+    std.debug.print("\n", .{});
+}
+
 ```
