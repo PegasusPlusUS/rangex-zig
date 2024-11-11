@@ -1,5 +1,6 @@
 Zig for loop can't use customized range, only while loop flexible enough.
 
+```Zig
 pub fn main() !void {
     // Integer range (forward)
     var range1 = try Range(i32).init(0, 10, 2);
@@ -25,3 +26,4 @@ pub fn main() !void {
     }
     std.debug.print("\n", .{});
 }
+```
