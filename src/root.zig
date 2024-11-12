@@ -361,14 +361,14 @@ test "std f32 start stop backward exclusive step is -0.2" {
 }
 
 test "indexed while range" {
-    var index :usize = 0;
+    var index: usize = 0;
     var range = try IndexedWhileRange(u8).init(10, 1, true, -1);
     std.debug.print("Indexed backward u8 while range [10, 1]:\n", .{});
     std.debug.print("(Index:Value)", .{});
     while (range.next()) |element| {
         try std.testing.expectEqual(index, element.index);
         index += 1;
-        std.debug.print("({}:{})\n", .{element.index, element.value});
+        std.debug.print("({}:{})\n", .{ element.index, element.value });
     }
     std.debug.print("\n", .{});
 }
