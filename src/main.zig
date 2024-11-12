@@ -1,12 +1,18 @@
 const std = @import("std");
 
 const WhileRange = @import("root.zig").WhileRange;
-const lib_main = @import("root.zig").lib_main;
+const lib_main = @import("root.zig").main;
+
 pub fn main() !void {
-    // Integer range (forward)
-    try lib_main();
+    std.debug.print("{s}\n", .{"Hello, world!"});
 }
 
 test "test_exe_main" {
+    std.debug.print("Running tests in src/main.zig \"main\"\n", .{});
+
     try main();
+}
+
+test "test_lib_main_within_exe" {
+    try lib_main();
 }

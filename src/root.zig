@@ -217,6 +217,12 @@ test "test_lib_main" {
     try main();
 }
 
+const exe_main = @import("main.zig").main;
+
+test "test exe main() within lib" {
+    try exe_main();
+}
+
 test "signed/unsigned int cast" {
     const signed: i8 = -1;
     const unsigned: u8 = @as(u8, @bitCast(signed)); // Cast -1 i8 to 255 u8
