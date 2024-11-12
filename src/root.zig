@@ -178,7 +178,7 @@ pub fn IndexedWhileRange(comptime T: type) type {
     };
 }
 
-pub fn lib_main() !void {
+pub fn main() !void {
     // Integer range (forward)
     var range1 = try WhileRange(i32).init(0, 10, false, 2);
     std.debug.print("Forward exclusive int range [0, 10) by 2:\n", .{});
@@ -214,7 +214,7 @@ pub fn lib_main() !void {
 test "test_lib_main" {
     std.debug.print("Running tests in src/root.zig \"main\"\n", .{});
 
-    try lib_main();
+    try main();
 }
 
 test "signed/unsigned int cast" {

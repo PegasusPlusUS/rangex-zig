@@ -14,21 +14,34 @@ git submodule add -f --name rangex https://github.com/PegasusPlusUS/rangex-zig.g
 pub fn build(b: *std.Build) void {
     //...
     //...
-    // add library
-    const lib_while_rangex = b.addStaticLibrary(.{
-        .name = "while_rangex",
-        .root_source_file = b.path("external/while_rangex/src/root.zig"),
+    //...
+
+    // lib target
+    const lib = b.addStaticLibrary(.{
+        .name = "my_zig_lib",
+        // In this case the main source file is merely a path, however, in more
+        // complicated build scripts, this could be a generated file.
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
-    b.installArtifact(lib_while_rangex);
+    // add anonymous import to facilitate import in exe source files, if cross imported,
+    // both should add anonymous import
+    lib.root_module.addAnonymousImport("while_rangex", .{
+        .root_source_file = b.path("src/external/while_rangex/src/root.zig"),
+    });
 
-    // link with exe
+    // exe target
     const exe = b.addExecutable(.{
         .name = "my_zig_executable",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+    });
+    // add anonymous import to facilitate import in exe source files, if cross imported,
+    // both should add anonymous import
+    exe.root_module.addAnonymousImport("while_rangex", .{
+        .root_source_file = b.path("src/external/while_rangex/src/root.zig"),
     });
     exe.linkLibrary(lib_while_rangex);
 }
@@ -37,7 +50,9 @@ pub fn build(b: *std.Build) void {
 ```Zig
 // Usage:
 // in src/main.cpp
-const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
+// Use anonymous import instead, can only use one way, to avoid symbol redefinition.
+// const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
+const while_rangex = @import("while_rangex").WhileRange;
 
 fn main() !void {
     var sum:usize = 0;
@@ -50,8 +65,10 @@ fn main() !void {
 ```
 
 ```Zig
-// lib_main() and test cases in while_rangex library:
-pub fn lib_main() !void {
+// Example:
+// in src/external/while_rangex/src/root.zig
+// main() and test cases in while_rangex library:
+pub fn main() !void {
     // Integer range (forward)
     var range1 = try WhileRange(i32).init(0, 10, false, 2);
     std.debug.print("Forward exclusive int range [0, 10) by 2:\n", .{});

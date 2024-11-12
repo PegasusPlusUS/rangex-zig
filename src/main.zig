@@ -7,6 +7,6 @@ pub fn main() !void {
     try lib_main();
 }
 
-test "test_main" {
+test "test_exe_main" {
     try main();
 }
