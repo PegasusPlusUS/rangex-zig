@@ -3,7 +3,54 @@
 Zig 'for' loop can't use customized range, only 'while' loop flexible enough.
 And 'for' loop can trace multiple ranges, so together with '0..' can be used as index, so dedicated indexed range only useful in 'while' loop.
 
+```Shell
+# Add dependent
+git submodule add -f --name rangex https://github.com/PegasusPlusUS/rangex-zig.git src\external\while_rangex
+```
+
 ```Zig
+// Usage:
+// in build.zig
+pub fn build(b: *std.Build) void {
+    //...
+    //...
+    // add library
+    const lib_while_rangex = b.addStaticLibrary(.{
+        .name = "while_rangex",
+        .root_source_file = b.path("external/while_rangex/src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    b.installArtifact(lib_while_rangex);
+
+    // link with exe
+    const exe = b.addExecutable(.{
+        .name = "my_zig_executable",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.linkLibrary(lib_while_rangex);
+}
+```
+
+```Zig
+// Usage:
+// in src/main.cpp
+const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
+
+fn main() !void {
+    var sum:usize = 0;
+    var accumulate_range = try while_rangex(usize).init(1, 100, true, 1);
+    while (accumulate_range.next()) |n| {
+        sum += n;
+    }
+    std.debug.print("Accumulate from {} to {} result in:{}", .{1, 100, sum});
+}
+```
+
+```Zig
+// lib_main() and test cases in while_rangex library:
 pub fn lib_main() !void {
     // Integer range (forward)
     var range1 = try WhileRange(i32).init(0, 10, false, 2);
