@@ -5,7 +5,7 @@ And 'for' loop can trace multiple ranges, so together with '0..' can be used as 
 
 ```Shell
 # Add dependent
-git submodule add -f --name rangex https://github.com/PegasusPlusUS/rangex-zig.git src\external\while_rangex
+git submodule add -f --name rangex https://github.com/PegasusPlusUS/rangex-zig.git src\\external\\while_rangex
 ```
 
 ```Zig
