@@ -1,15 +1,57 @@
 # RangeX
 
-Zig 'for' loop can't use customized range, only 'while' loop flexible enough.
-And 'for' loop can trace multiple ranges, so together with '0..' can be used as index, so dedicated indexed range only useful in 'while' loop.
+## Limitations of 'for' loop in Zig
 
-```Shell
-# Add dependent
-git submodule add -f --name rangex https://github.com/PegasusPlusUS/rangex-zig.git src\\external\\while_rangex
-```
+- (start..end) only support usize type, and step only 1, no backward. Only exclusive.
+
+- Do not support customized range to keep the language simple
+
+## Pros of 'for' loop in Zig
+
+- Can iterate multiple ranges together, avoid the usage of dedicated indexed range:
 
 ```Zig
-// Usage:
+// Reduce: Sum all elements, have to specify T, can't use 'anytype'
+fn reduceSum(comptime T: type, arr: []const T) @TypeOf(arr[0]) {
+    var sum: @TypeOf(arr[0]) = 0;
+    for (arr) |item| {
+        sum += item;
+    }
+    return sum;
+}
+
+test "over array inclusively with generated index" {
+    const array = [_]i32{ 1, 2, 3, 4, 5 };
+    var s: i32 = 0;
+    for (0.., array, 1..array.len + 1) |index, item, verify| {
+        s += item;
+        try std.testing.expectEqual(array[index], item);
+        try std.testing.expectEqual(item, @as(@TypeOf(array[0]), @intCast(verify)));
+    }
+    try std.testing.expectEqual(s, reduceSum(@TypeOf(array[0]), &array));
+    try std.testing.expectEqual(s, reduceSum(@TypeOf(array[0]), array[0..]));
+}
+```
+
+## while range is flexible enough
+
+Usage:
+
+### 1. Add dependent as submodule or just clone within src
+
+```Shell
+git submodule add -f --name rangex https://github.com/PegasusPlusUS/rangex-zig.git src/external/while_rangex
+```
+
+or
+
+```Shell
+git clone https://github.com/PegasusPlusUS/rangex-zig.git src/external/while_rangex
+```
+
+### 2. Add AnonymousImport in build graph to facilitate @import
+
+```Zig
 // in build.zig
 pub fn build(b: *std.Build) void {
     //...
@@ -47,8 +89,9 @@ pub fn build(b: *std.Build) void {
 }
 ```
 
+### import at src
+
 ```Zig
-// Usage:
 // in src/main.cpp
 // Use anonymous import instead, can only use one way, to avoid symbol redefinition.
 // const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
@@ -64,8 +107,9 @@ fn main() !void {
 }
 ```
 
+### View test cases for all possiblities
+
 ```Zig
-// Example:
 // in src/external/while_rangex/src/root.zig
 // main() and test cases in while_rangex library:
 pub fn main() !void {
@@ -99,12 +143,6 @@ pub fn main() !void {
         std.debug.print("{d:.1} ", .{value});
     }
     std.debug.print("\n", .{});
-}
-
-test "test_lib_main" {
-    std.debug.print("Running tests in src/root.zig \"main\"\n", .{});
-
-    try lib_main();
 }
 
 test "std u8 start stop exclusive step is 1" {

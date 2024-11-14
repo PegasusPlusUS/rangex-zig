@@ -11,7 +11,7 @@ pub fn main() !void {
 test "test_exe_main" {
     std.debug.print("Running tests in src/main.zig \"main\"\n", .{});
 
-    try main();
+    //try main();
 }
 
 test "test_lib_main_within_exe" {

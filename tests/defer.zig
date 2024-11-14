@@ -1,3 +1,4 @@
+// Sample test case from home page of zig-lang
 const std = @import("std");
 const parseInt = std.fmt.parseInt;
 

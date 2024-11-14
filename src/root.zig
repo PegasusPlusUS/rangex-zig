@@ -1,5 +1,28 @@
 const std = @import("std");
 
+/// Create range to be used in 'while' loop, support forward/backward, step over 1
+/// float value, and index together
+/// # Examples
+///
+/// ```zig
+/// // Using anonymous import defined in build.zig, but can not use both to cause redefinition
+/// //const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
+/// const while_rangex = @import("while_rangex").WhileRange;
+/// const indexed_while_rangex = @import("while_rangex").IndexedWhileRange;
+/// var sum:usize = 0;
+/// var accumulate_range = try while_rangex(usize).init(1, 100, true, 1);
+/// while (accumulate_range.next()) |n| {
+///     sum += n;
+/// }
+/// std.debug.print("Accumulate from {} to {} result in:{}", .{1, 100, sum});
+/// assert(sum == 5050);
+/// assert(false);
+/// ```
+// Using anonymous import defined in build.zig, but can not use both to cause redefinition
+//const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
+//const while_rangex2 = @import("external/while_rangex/src/root.zig").WhileRange;
+// const while_rangex = @import("while_rangex").WhileRange;
+// const while_rangex2 = @import("while_rangex").WhileRange;
 pub fn WhileRange(comptime T: type) type {
     // Verify T is a numeric type
     comptime {

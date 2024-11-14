@@ -92,6 +92,14 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_edge_unit_tests = b.addRunArtifact(edge_unit_tests);
+
+    const builtin_for_unit_tests = b.addTest(.{
+        .root_source_file = b.path("tests/builtin_for.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const run_builtin_for_unit_tests = b.addRunArtifact(builtin_for_unit_tests);
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
@@ -99,4 +107,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
     test_step.dependOn(&run_edge_unit_tests.step);
+    test_step.dependOn(&run_builtin_for_unit_tests.step);
 }

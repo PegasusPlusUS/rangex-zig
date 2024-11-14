@@ -1,7 +1,7 @@
 const std = @import("std");
 const IndexedWhileRange = @import("while_rangex").IndexedWhileRange;
 
-test "std u8 exclusive edge" {
+test "std u8 exclusive edge, can't directly iterator through full u8" {
     // std for in zig only allow usize
     // Loop from -128 to 127 exclusive
     //for (std.math.minInt(i8)..std.math.maxInt(i8)) |i| {
@@ -11,13 +11,26 @@ test "std u8 exclusive edge" {
     const start: u8 = 0;
     const end: u8 = 255;
     var index: usize = 0;
-    for (start..end) |_| {
-        // //const v: u8 = i;
-        // const v = i;
-        // std.debug.print("i:{} v:{}\n", .{ i, v });
+    for (start..end) |n| {
+        try std.testing.expect(start <= n);
+        try std.testing.expect(n < end);
         index += 1;
     }
     try std.testing.expect(index == end - start);
+
+    const mini8 = std.math.minInt(i8);
+    const maxi8 = std.math.maxInt(i8);
+    for (0..maxi8 - mini8 + 1) |n| {
+        // Extend 1 more bit to avoid value out of i8 range
+        const ni9 = @as(i9, @intCast(n)) + @as(i9, mini8);
+        try std.testing.expect(ni9 >= @as(i9, mini8));
+        try std.testing.expect(ni9 <= @as(i9, maxi8));
+        // Now get fully iterated n within i8
+        const ni8 = @as(i8, @intCast(ni9));
+        if (ni8 != ni8) {
+            break;
+        }
+    }
 }
 
 fn get_range_end_mark_u8(inclusive: bool) u8 {
@@ -292,5 +305,5 @@ test "example test" {
         std.debug.print("Test failed with error: {}\n", .{err});
         return;
     };
-    std.debug.print("Test passed with result: {}\n", .{result});
+    std.debug.print("Example test passed with result: {}\n", .{result});
 }
