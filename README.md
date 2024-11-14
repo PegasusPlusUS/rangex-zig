@@ -49,7 +49,7 @@ pub fn build(b: *std.Build) void {
 
 ```Zig
 // Usage:
-// in src/main.cpp
+// in src/main.zig
 // Use anonymous import instead, can only use one way, to avoid symbol redefinition.
 // const while_rangex = @import("external/while_rangex/src/root.zig").WhileRange;
 const while_rangex = @import("while_rangex").WhileRange;
