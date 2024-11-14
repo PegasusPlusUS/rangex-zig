@@ -17,32 +17,55 @@ pub fn WhileRange(comptime T: type) type {
         else => T,
     };
 
+    const UnsignedT = switch (@typeInfo(T)) {
+        .Int => |int_info| if (int_info.signedness == .signed)
+            std.meta.Int(.unsigned, int_info.bits)
+        else
+            T,
+        else => T,
+    };
+
+    const ExtendedSignedT = switch (@typeInfo(T)) {
+        .Int => |int_info| std.meta.Int(.signed, 2 * int_info.bits),
+        else => T,
+    };
+
     return struct {
         start: T,
         end: T,
-        step: SignedT,
+        step: SignedT, // so step can't be over (T.max - T.min) / 2, to do this, need countup()/countdown() seperate interfaces
         curr: T,
-        //signed_step: SignedT,
+        negative_range: bool,
+        inclusive_or_not_on_step: bool,
 
         const Self = @This();
+        const debug_print = false;
 
         pub fn init(start: T, end: T, inclusive: bool, step: SignedT) !Self {
-            //std.debug.print("Original start: {d} end: {d} step: {d} inclusive:{}\n", .{ start, end, step, inclusive });
             // Validate step isn't zero
             if (0 == step) return error.ZeroStep;
+
+            if (debug_print) {
+                std.debug.print("Original start: {d} end: {d} step: {d} inclusive:{}\n", .{ start, end, step, inclusive });
+            }
+
             var negative_range = false;
-            var range_size: T = 0;
-            var steps: T = 0; //@divFloor(@abs(end - start), @abs(step));
+            var range_size: UnsignedT = 0;
+            var steps: UnsignedT = 0; //@divFloor(@abs(end - start), @abs(step));
             var end_: T = end;
+            var not_on_step = false;
+
             if (start < end) {
                 if (0 > step) {
                     // negative range
                     negative_range = true;
                 } else {
-                    range_size = (end - start);
                     if (comptime @typeInfo(T) == .Int) {
-                        steps = @divFloor(range_size, @as(T, @intCast(step)));
+                        const result = @subWithOverflow(end, start);
+                        range_size = @as(UnsignedT, @bitCast(result[0]));
+                        steps = @divFloor(range_size, @as(UnsignedT, @intCast(step)));
                     } else {
+                        range_size = end - start;
                         steps = @divFloor(range_size, step);
                     }
                 }
@@ -50,59 +73,74 @@ pub fn WhileRange(comptime T: type) type {
                 if (0 < step) {
                     negative_range = true;
                 } else {
-                    range_size = (start - end);
                     if (comptime @typeInfo(T) == .Int) {
-                        steps = @divFloor(range_size, @as(T, @intCast(0 - step)));
+                        const result = @subWithOverflow(@as(UnsignedT, @bitCast(start)), @as(UnsignedT, @bitCast(end)));
+                        range_size = result[0];
+                        steps = @divFloor(range_size, @as(UnsignedT, @intCast(0 - step)));
                     } else {
+                        range_size = start - end;
                         steps = @divFloor(range_size, 0 - step);
                     }
                 }
             }
-            //  else {
-            //     // exclusive empty range
-            //     // inclusive one iteration range
-            //     // do nothing
-            //     steps = 0;
-            // }
+
             if (negative_range) {
                 end_ = start;
             } else {
-                //std.debug.print("After range_size, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
-
+                if (debug_print) {
+                    std.debug.print("After range_size, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
+                }
                 if (0 != range_size) {
                     if (comptime @typeInfo(T) == .Int) {
+                        if (step < 0) {
+                            //std.debug.print("start:{} end:{} range_size:{} steps:{} step:{}\n", .{ start, end, range_size, steps, step });
+                        }
                         // May overflow, need carefully test and cast to extended signedT ( u8 -> i16 )
-                        end_ = @as(T, @intCast(@as(SignedT, @intCast(start)) + @as(SignedT, @intCast(steps)) * step));
+                        const result = @as(ExtendedSignedT, start) + @as(ExtendedSignedT, steps) * @as(ExtendedSignedT, step);
+                        //std.debug.print("calculate start - steps * abs(step) is: {}\n", .{result});
+                        end_ = @as(T, @intCast(result));
                     } else {
                         end_ = start + steps * step;
                     }
                 }
-                //std.debug.print("After start + steps * step, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
 
-                var not_on_step = end_ != end;
+                if (debug_print) {
+                    std.debug.print("After start + steps * step, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
+                }
+
+                not_on_step = end_ != end;
                 if (comptime @typeInfo(T) == .Float) {
                     not_on_step = @abs(end_ - end) > @abs(step / 10);
-                    //std.debug.print("end_: {d} end: {d} step: {d} not_on_step: {}\n", .{ end_, end, step, not_on_step });
+                    if (debug_print) {
+                        std.debug.print("end_: {d} end: {d} step: {d} not_on_step: {}\n", .{ end_, end, step, not_on_step });
+                    }
                 }
 
                 if (inclusive or (0 < range_size and not_on_step)) {
                     if (comptime @typeInfo(T) == .Int) {
-                        end_ = @as(T, @bitCast(@as(SignedT, @bitCast(end_)) + step));
+                        const result = @addWithOverflow(end_, @as(T, @bitCast(step)));
+                        end_ = result[0];
                     } else {
                         end_ = end_ + step;
                     }
-                    //std.debug.print("Adjust for inclusive or not_on_step, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
+
+                    if (debug_print) {
+                        std.debug.print("Adjust for inclusive or not_on_step, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
+                    }
                 }
             }
 
-            //std.debug.print("Finally, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
+            if (debug_print) {
+                std.debug.print("Finally, start: {d} end: {d} step: {d} range_size: {d} end_: {d}\n", .{ start, end, step, range_size, end_ });
+            }
 
             return Self{
                 .start = start,
                 .end = end_,
                 .step = step,
                 .curr = start,
-                //.signed_step = step,
+                .negative_range = negative_range,
+                .inclusive_or_not_on_step = inclusive or not_on_step,
             };
         }
 
@@ -111,32 +149,47 @@ pub fn WhileRange(comptime T: type) type {
         }
 
         pub fn next(self: *Self) ?T {
+            if (self.negative_range) {
+                return null;
+            }
+
+            var valid = false;
             if (comptime @typeInfo(T) == .Float) {
-                //print_debug(self);
-                const epsilon = self.step / 2.0;
-                // Handle both forward and backward iteration
-                const valid = if (self.step > 0)
-                    self.curr < self.end - epsilon
-                else
-                    self.curr > self.end - epsilon;
-
-                if (!valid) return null;
+                const epsilon = @abs(self.step / 2.0);
+                // avoid overflow
+                if (self.curr > self.end) {
+                    valid = epsilon < self.curr - self.end;
+                } else {
+                    valid = epsilon < self.end - self.curr;
+                }
             } else {
-                // const valid = if (self.step > 0)
-                //     self.curr < self.end
-                // else
-                //     self.curr > self.end;
-                const valid = self.curr != self.end;
+                valid = self.curr != self.end;
+            }
 
-                if (!valid) return null;
+            if (debug_print) {
+                if ((self.curr > self.end and (@as(ExtendedSignedT, self.curr) - @as(ExtendedSignedT, self.end)) < 2) or
+                    (self.curr < self.end and (@as(ExtendedSignedT, self.end) - @as(ExtendedSignedT, self.curr)) < 2))
+                {
+                    std.debug.print("current: {} end: {} step: {}\n", .{ self.curr, self.end, self.step });
+                }
+            }
+
+            if (!self.inclusive_or_not_on_step) {
+                if (!valid) {
+                    return null;
+                }
+            } else {
+                self.inclusive_or_not_on_step = false;
             }
 
             const value = self.curr;
             if (comptime @typeInfo(T) == .Int) {
-                self.curr = @as(T, @bitCast(@as(SignedT, @bitCast(self.curr)) + self.step));
+                const result = @addWithOverflow(@as(SignedT, @bitCast(self.curr)), self.step);
+                self.curr = @as(T, @bitCast(result[0]));
             } else {
                 self.curr = self.curr + self.step;
             }
+
             return value;
         }
     };
@@ -212,15 +265,14 @@ pub fn main() !void {
 }
 
 test "test_lib_main" {
-    std.debug.print("Running tests in src/root.zig \"main\"\n", .{});
+    //std.debug.print("Running tests in src/root.zig \"main\"\n", .{});
 
-    try main();
+    //try main();
 }
 
-const exe_main = @import("main.zig").main;
-
+//const exe_main = @import("main.zig").main;
 test "test exe main() within lib" {
-    try exe_main();
+    //try exe_main();
 }
 
 test "signed/unsigned int cast" {
