@@ -192,32 +192,92 @@ test "i8 exclusive edge" {
     try intEdge(i8, false);
 }
 
+test "i8 exclusive edge not on step" {
+    try intEdgeWithStep(i8, false, 3);
+}
+
+test "i8 exclusive edge on step" {
+    try intEdgeWithStep(i8, false, 5);
+}
+
 test "i8 inclusive edge" {
     try intEdge(i8, true);
+}
+
+test "i8 inclusive edge not on step" {
+    try intEdgeWithStep(i8, true, 3);
+}
+
+test "i8 inclusive edge on step" {
+    try intEdgeWithStep(i8, true, 5);
 }
 
 test "u8 exclusive edge" {
     try intEdge(u8, false);
 }
 
+test "u8 exclusive edge not on step" {
+    try intEdgeWithStep(u8, false, 3);
+}
+
+test "u8 exclusive edge on step" {
+    try intEdgeWithStep(u8, false, 5);
+}
+
 test "u8 inclusive edge" {
     try intEdge(u8, true);
+}
+
+test "u8 inclusive edge not on step" {
+    try intEdgeWithStep(u8, true, 3);
+}
+
+test "u8 inclusive edge on step" {
+    try intEdgeWithStep(u8, true, 5);
 }
 
 test "i16 exclusive edge" {
     try intEdge(i16, false);
 }
 
+test "i16 exclusive edge not on step" {
+    try intEdgeWithStep(i16, false, 3);
+}
+
+test "i16 exclusive edge on step" {
+    try intEdgeWithStep(i16, false, 5);
+}
+
 test "i16 inclusive edge" {
     try intEdge(i16, true);
+}
+
+test "i16 inclusive edge not on step" {
+    try intEdgeWithStep(i16, true, 3);
+}
+
+test "i16 inclusive edge on step" {
+    try intEdgeWithStep(i16, true, 5);
 }
 
 test "u16 exclusive edge" {
     try intEdge(u16, false);
 }
 
+test "u16 exclusive edge not on step" {
+    try intEdgeWithStep(u16, false, 3);
+}
+
+test "u16 exclusive edge on step" {
+    try intEdgeWithStep(u16, false, 5);
+}
+
 test "u16 inclusive edge" {
     try intEdge(u16, true);
+}
+
+test "to do" {
+    std.testing.expect(false);
 }
 
 test "i24 exclusive edge" {
