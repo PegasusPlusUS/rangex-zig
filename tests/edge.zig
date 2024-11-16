@@ -276,8 +276,13 @@ test "u16 inclusive edge" {
     try intEdge(u16, true);
 }
 
-test "to do" {
-    std.testing.expect(false);
+
+test "u16 inclusive edge not on step" {
+    try intEdgeWithStep(u16, true, 3);
+}
+
+test "u16 inclusive edge on step" {
+    try intEdgeWithStep(u16, true, 5);
 }
 
 test "i24 exclusive edge" {
@@ -358,6 +363,15 @@ test "u128 exclusive edge" {
 test "u128 inclusive edge" {
     try intEdgeWithStep(u128, true, std.math.maxInt(i112));
     try intEdgeWithStep(u128, true, std.math.maxInt(i112) + 1);
+}
+
+test "float exclusive edge" {
+    try intEdgeWithStep(f32, true, std.math.maxInt(i24));
+    try intEdgeWithStep(f32, true, std.math.maxInt(i24) + 1);
+}
+
+test "to do" {
+    //std.testing.expect(false);
 }
 
 test "example test" {
