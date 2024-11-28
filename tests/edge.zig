@@ -200,6 +200,17 @@ test "i8 exclusive edge on step" {
     try intEdgeWithStep(i8, false, 5);
 }
 
+test "i8 exclusive edge min step" {
+    //try intEdgeWithStep(i8, false, std.math.minInt(i8));
+    std.testing.expect(false) catch |e| {
+        std.debug.print("To do {}\n", .{e});
+    };
+}
+
+test "i8 exclusive edge max step" {
+    try intEdgeWithStep(i8, false, std.math.maxInt(i8));
+}
+
 test "i8 inclusive edge" {
     try intEdge(i8, true);
 }
@@ -275,7 +286,6 @@ test "u16 exclusive edge on step" {
 test "u16 inclusive edge" {
     try intEdge(u16, true);
 }
-
 
 test "u16 inclusive edge not on step" {
     try intEdgeWithStep(u16, true, 3);
@@ -366,12 +376,19 @@ test "u128 inclusive edge" {
 }
 
 test "float exclusive edge" {
-    try intEdgeWithStep(f32, true, std.math.maxInt(i24));
-    try intEdgeWithStep(f32, true, std.math.maxInt(i24) + 1);
+    //try intEdgeWithStep(f32, true, std.math.maxInt(i24));
+    //try intEdgeWithStep(f32, true, std.math.maxInt(i24) + 1);
+    std.testing.expect(false) catch |e| {
+        std.debug.print("To do {}\n", .{e});
+        return error.TestUnexpectedResult;
+    };
 }
 
-test "to do" {
-    //std.testing.expect(false);
+test "float to do, min/max" {
+    std.testing.expect(false) catch |e| {
+        std.debug.print("To do {}\n", .{e});
+        return e;
+    };
 }
 
 test "example test" {
